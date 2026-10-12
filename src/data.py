@@ -1,5 +1,9 @@
 from pathlib import Path
 import pandas as pd
+from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "adult.data"
 
@@ -32,3 +36,21 @@ def load_adult(path: Path | str = DATA_PATH) -> pd.DataFrame:
     if df.shape != EXPECTED_SHAPE:
         raise ValueError(f"Unexpected shape {df.shape}, expected {EXPECTED_SHAPE}")
     return df
+
+
+def build_preprocessor(cat_strategy="constant"):builf
+    num = make_pipeline(
+        SimpleImputer(strategy="median"),
+        StandardScaler(),
+    )
+    cat_imputer = (SimpleImputer(strategy="constant",fill_value="Missing")
+                    if cat_strategy == "constant"
+                    else SimpleImputer(strategy="most_frequent"))
+    cat = make_pipeline(
+        cat_imputer,
+        OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+    )
+    return ColumnTransformer([
+        ("num", num, make_column_selector(dtype_include="number")),
+        ("cat", cat, make_column_selector(dtype_exclude="number")),
+    ])
